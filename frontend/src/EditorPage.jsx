@@ -79,48 +79,111 @@ const EditorPage = () => {
                     senderId: userIdRef.current
                 }),
             });
-        }
-    };
+        };
 
-    return (
-        <>
-            <button
-                style={{
+        const handleClear = () => {
+            const confirmClear = window.confirm("Are you sure you want to clear all content?");
+            if (confirmClear) {
+                handleEditorChange('');
+            }
+        };
+
+        const handlePaste = async (e) => {
+            const items = e.clipboardData.items;
+            for (const item of items) {
+                if (item.type.indexOf('image') !== -1) {
+                    e.preventDefault();
+                    const blob = item.getAsFile();
+                    const formData = new FormData();
+                    formData.append('file', blob);
+
+                    try {
+                        const response = await fetch(`${getApiUrl().replace('/content', '/images')}`, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.ok) {
+                            const imageId = await response.text();
+                            // Get URL for the image
+                            const imageUrl = `${getApiUrl().replace('/content', '/images')}/${imageId}`;
+                            // Insert markdown at cursor
+                            const imageMarkdown = `\n![Shared Image](${imageUrl})\n`;
+
+                            // Simple append for now
+                            handleEditorChange(content + imageMarkdown);
+                        }
+                    } catch (error) {
+                        console.error("Error uploading image:", error);
+                        alert("Failed to upload image.");
+                    }
+                }
+            }
+        };
+
+        return (
+            <>
+                <div style={{
                     position: 'fixed',
                     bottom: '20px',
                     right: '20px',
                     zIndex: 1000,
-                    padding: '10px 20px',
-                    backgroundColor: '#007acc',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
-                    fontSize: '14px',
-                    fontFamily: 'inherit'
-                }}
-                onClick={() => window.open('/', '_blank')}
-            >
-                + New File
-            </button>
-            <Editor
-                height="100vh"
-                width="100vw"
-                defaultLanguage="javascript"
-                theme="vs-dark"
-                value={content}
-                onChange={handleEditorChange}
-                options={{
-                    minimap: { enabled: true },
-                    automaticLayout: true,
-                    wordWrap: 'on',
-                    padding: { top: 10 }
-                }}
-            />
-        </>
-    );
-};
+                    display: 'flex',
+                    gap: '10px'
+                }}>
+                    <button
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: '#e53935',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
+                            fontSize: '14px',
+                            fontFamily: 'inherit'
+                        }}
+                        onClick={handleClear}
+                    >
+                        Clear
+                    </button>
+                    <button
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: '#007acc',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
+                            fontSize: '14px',
+                            fontFamily: 'inherit'
+                        }}
+                        onClick={() => window.open('/', '_blank')}
+                    >
+                        + New File
+                    </button>
+                </div>
+                <div onPaste={handlePaste} style={{ width: '100%', height: '100%' }}>
+                    <Editor
+                        height="100vh"
+                        width="100vw"
+                        defaultLanguage="markdown"
+                        theme="vs-dark"
+                        value={content}
+                        onChange={handleEditorChange}
+                        options={{
+                            minimap: { enabled: true },
+                            automaticLayout: true,
+                            wordWrap: 'on',
+                            padding: { top: 10 }
+                        }}
+                    />
+                </div>
+            </>
+        );
+    };
 
-export default EditorPage;
+    export default EditorPage;
