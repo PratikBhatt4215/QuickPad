@@ -18,9 +18,13 @@ const HomePage = () => {
             height: '100vh',
             backgroundColor: '#1e1e1e',
             color: '#fff',
-            fontSize: '1.2rem'
+            fontSize: '1.2rem',
+            fontFamily: 'Inter, sans-serif'
         }}>
-            Creating your shared editor session...
+            <div style={{ textAlign: 'center' }}>
+                <h1 style={{ marginBottom: '1rem', color: '#007acc' }}>QuickPad</h1>
+                <p>Generating new secure session...</p>
+            </div>
         </div>
     );
 };
